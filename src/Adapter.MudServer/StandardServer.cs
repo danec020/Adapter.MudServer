@@ -15,7 +15,7 @@ namespace MudDesigner.MudEngine.Networking
 
         private Dictionary<IPlayer, IConnection> playerConnections;
 
-		private Dictionary<IConnection, Socket> connectionSockets;
+		private Dictionary<IPlayer, Socket> playerSockets;
 
         private IServerConfiguration configuration;
 
@@ -77,7 +77,7 @@ namespace MudDesigner.MudEngine.Networking
             }
 
             this.playerConnections = new Dictionary<IPlayer, IConnection>();
-			this.connectionSockets = new Dictionary<IConnection, Socket>();
+			this.playerSockets = new Dictionary<IPlayer, Socket>();
             this.Status = ServerStatus.Stopped;
             this.clientTimeoutTimer = new EngineTimer<IAdapter>(this);
 
@@ -152,13 +152,12 @@ namespace MudDesigner.MudEngine.Networking
 
 		internal Socket GetSocketForPlayer(IPlayer player)
 		{
-			if (!this.playerConnections.ContainsKey(player))
+			if (!this.playerSockets.ContainsKey(player))
 			{
 				return null;
 			}
 
-			IConnection playerConnection = this.playerConnections[player];
-			return this.connectionSockets[playerConnection];
+			return this.playerSockets[player];
 		}
 
         private void Disconnect(IPlayer player)
@@ -213,9 +212,12 @@ namespace MudDesigner.MudEngine.Networking
             {
                 this.PublishMessage(new PlayerCreatedMessage(player));
 
+                // Add the player and it's connection to our collection of sockets
+                this.playerSockets.Add(player, clientConnection);
+
+                // Create the user connection instance and store it for the player.
                 IConnection userConnection = this.connectionFactory.CreateConnection(player, this);
                 this.playerConnections.Add(player, userConnection);
-				this.connectionSockets.Add(userConnection, clientConnection);
 
                 userConnection.Initialize();
             });

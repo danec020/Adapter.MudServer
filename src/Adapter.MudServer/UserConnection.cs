@@ -85,10 +85,10 @@ namespace MudDesigner.MudEngine.Networking
             int bytesRead = this.socket.EndReceive(result);
             if (bytesRead == 0 || this.buffer.Count() == 0)
             {
-
-                this.socket.BeginReceive(this.buffer, 0, this.bufferSize, 0, new AsyncCallback(this.ReceiveData), null);
                 return;
             }
+
+            this.socket.BeginReceive(this.buffer, 0, this.bufferSize, 0, new AsyncCallback(this.ReceiveData), null);
         }
 
         private void SendMessage(string content)
