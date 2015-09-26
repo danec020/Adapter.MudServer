@@ -1,55 +1,118 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Threading.Tasks;
-using MudDesigner.MudEngine.Actors;
-
+﻿//-----------------------------------------------------------------------
+// <copyright file="StandardServer.cs" company="Sully">
+//     Copyright (c) Johnathon Sullinger. All rights reserved.
+// </copyright>
+//-----------------------------------------------------------------------
 namespace MudDesigner.MudEngine.Networking
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Net;
+    using System.Net.Sockets;
+    using System.Threading.Tasks;
+    using MudDesigner.MudEngine.Actors;
+
+    /// <summary>
+    /// Provides members that can be used to interact with a server
+    /// </summary>
     public class StandardServer : AdapterBase<IServerConfiguration>, IServer
     {
+        /// <summary>
+        /// The game that owns this server
+        /// </summary>
         private IGame game;
 
+        /// <summary>
+        /// All of the connected players, and their connection managers
+        /// </summary>
         private Dictionary<IPlayer, IConnection> playerConnections;
 
-		private Dictionary<IPlayer, Socket> playerSockets;
+        // TODO: playerConnections and playerSockets should be combined into a single collection of List<ConnectedPlayer>
+        /// <summary>
+        /// All of the connected players and their sockets.
+        /// </summary>
+        private Dictionary<IPlayer, Socket> playerSockets;
 
+        /// <summary>
+        /// The server's configuration
+        /// </summary>
         private IServerConfiguration configuration;
 
+        /// <summary>
+        /// The server socket
+        /// </summary>
         private Socket serverSocket;
 
+        /// <summary>
+        /// The client timeout timer
+        /// </summary>
         private EngineTimer<IAdapter> clientTimeoutTimer;
 
+        /// <summary>
+        /// The factory responsible for creating new players upon connection
+        /// </summary>
         private IPlayerFactory playerFactory;
 
-		private IConnectionFactory<StandardServer> connectionFactory;
+        /// <summary>
+        /// The factory responsible for creating a connection upon receiving a new socket connection.
+        /// </summary>
+        private IConnectionFactory<StandardServer> connectionFactory;
 
-		public StandardServer(IPlayerFactory playerFactory, IConnectionFactory<StandardServer> connectionFactory) : base()
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StandardServer"/> class.
+        /// </summary>
+        /// <param name="playerFactory">The player factory.</param>
+        /// <param name="connectionFactory">The connection factory.</param>
+        public StandardServer(
+            IPlayerFactory playerFactory, 
+            IConnectionFactory<StandardServer> connectionFactory) 
         {
             this.playerFactory = playerFactory;
             this.connectionFactory = connectionFactory;
         }
 
-		public StandardServer(
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StandardServer"/> class.
+        /// </summary>
+        /// <param name="playerFactory">The player factory.</param>
+        /// <param name="connectionFactory">The connection factory.</param>
+        /// <param name="serverConfiguration">The server configuration.</param>
+        public StandardServer(
             IPlayerFactory playerFactory,
-			IConnectionFactory<StandardServer> connectionFactory,
-            IServerConfiguration serverConfiguration) : base(serverConfiguration)
+            IConnectionFactory<StandardServer> connectionFactory,
+            IServerConfiguration serverConfiguration) 
+            : base(serverConfiguration)
         {
             this.playerFactory = playerFactory;
             this.connectionFactory = connectionFactory;
         }
-			
-		public override string Name => 
-			string.Format("Mud Engine {0} Server Adapter", (int)System.Environment.OSVersion.Platform == 4 ? "Unix" : "Windows");
 
+        /// <summary>
+        /// Gets or sets the name of this adapter.
+        /// </summary>
+        public override string Name =>
+                    string.Format("Mud Engine {0} Server Adapter", (int)System.Environment.OSVersion.Platform == 4 ? "Unix" : "Windows");
+
+        /// <summary>
+        /// Gets or sets the owner of the server.
+        /// </summary>
         public string Owner { get; set; }
 
+        /// <summary>
+        /// Gets the status of the server.
+        /// </summary>
         public ServerStatus Status { get; internal set; }
 
+        /// <summary>
+        /// Gets the port that the server is running on.
+        /// </summary>
         public int RunningPort { get; private set; } = 5001;
 
+        /// <summary>
+        /// Configures the server using a given configuration.
+        /// </summary>
+        /// <param name="configuration">The server configuration used to setup the server.</param>
         public override void Configure(IServerConfiguration configuration)
         {
             if (configuration == null)
@@ -60,6 +123,12 @@ namespace MudDesigner.MudEngine.Networking
             this.configuration = configuration;
         }
 
+        /// <summary>
+        /// Initializes the component.
+        /// </summary>
+        /// <returns>
+        /// Returns an awaitable Task
+        /// </returns>
         public override Task Initialize()
         {
             if (this.configuration == null)
@@ -76,13 +145,20 @@ namespace MudDesigner.MudEngine.Networking
             }
 
             this.playerConnections = new Dictionary<IPlayer, IConnection>();
-			this.playerSockets = new Dictionary<IPlayer, Socket>();
+            this.playerSockets = new Dictionary<IPlayer, Socket>();
             this.Status = ServerStatus.Stopped;
             this.clientTimeoutTimer = new EngineTimer<IAdapter>(this);
 
             return Task.FromResult(0);
         }
 
+        /// <summary>
+        /// Starts this adapter and allows it to run.
+        /// </summary>
+        /// <param name="game">The an instance of an initialized game.</param>
+        /// <returns>
+        /// Returns an awaitable Task
+        /// </returns>
         public override Task Start(IGame game)
         {
             if (this.Status != ServerStatus.Stopped)
@@ -121,6 +197,17 @@ namespace MudDesigner.MudEngine.Networking
             return Task.FromResult(0);
         }
 
+        /// <summary>
+        /// Lets this instance know that it is about to go out of scope and disposed.
+        /// The instance will perform clean-up of its resources in preperation for deletion.
+        /// </summary>
+        /// <returns>
+        /// Returns an awaitable Task
+        /// </returns>
+        /// <para>
+        /// Informs the component that it is no longer needed, allowing it to perform clean up.
+        /// Objects registered to one of the two delete events will be notified of the delete request.
+        /// </para>
         public override Task Delete()
         {
             if (this.AdapterConfiguration.OnServerShutdown != null)
@@ -145,20 +232,35 @@ namespace MudDesigner.MudEngine.Networking
             this.PublishMessage(new AdapterDeletedMessage(this));
 
             return Task.FromResult(0);
-		}
+        }
 
-		public override string ToString() => $"{this.game.Name} - Adapter: {this.Name}";
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString() => $"{this.game.Name} - Adapter: {this.Name}";
 
-		internal Socket GetSocketForPlayer(IPlayer player)
-		{
-			if (!this.playerSockets.ContainsKey(player))
-			{
-				return null;
-			}
+        /// <summary>
+        /// Gets the socket for the given player.
+        /// </summary>
+        /// <param name="player">The player to lookup a socket for.</param>
+        /// <returns>Returns the connected socket for the player</returns>
+        internal Socket GetSocketForPlayer(IPlayer player)
+        {
+            if (!this.playerSockets.ContainsKey(player))
+            {
+                return null;
+            }
 
-			return this.playerSockets[player];
-		}
+            return this.playerSockets[player];
+        }
 
+        /// <summary>
+        /// Disconnects the specified player.
+        /// </summary>
+        /// <param name="player">The player.</param>
         private void Disconnect(IPlayer player)
         {
             if (player == null)
@@ -174,6 +276,9 @@ namespace MudDesigner.MudEngine.Networking
             player.Delete();
         }
 
+        /// <summary>
+        /// Disconnects all of the currently connected players.
+        /// </summary>
         private void DisconnectAll()
         {
             foreach (KeyValuePair<IPlayer, IConnection> pair in this.playerConnections)
@@ -186,6 +291,10 @@ namespace MudDesigner.MudEngine.Networking
             this.playerConnections.Clear();
         }
 
+        /// <summary>
+        /// Handles the connection of a client to the server.
+        /// </summary>
+        /// <param name="socketState">State of the socket.</param>
         private void ConnectClient(IAsyncResult socketState)
         {
             Socket server = (Socket)socketState.AsyncState;
@@ -196,6 +305,10 @@ namespace MudDesigner.MudEngine.Networking
             this.CreatePlayerConnection(clientConnection);
         }
 
+        /// <summary>
+        /// Creates the player socket connection wrapper.
+        /// </summary>
+        /// <param name="clientConnection">The client connection.</param>
         private void CreatePlayerConnection(Socket clientConnection)
         {
             // Initialize a new player.
@@ -217,6 +330,11 @@ namespace MudDesigner.MudEngine.Networking
             });
         }
 
+        /// <summary>
+        /// Handles a Player being deleting.
+        /// </summary>
+        /// <param name="component">The component.</param>
+        /// <returns></returns>
         private Task PlayerDeleting(IGameComponent component)
         {
             IPlayer player = component as IPlayer;
@@ -236,6 +354,11 @@ namespace MudDesigner.MudEngine.Networking
             return Task.FromResult(0);
         }
 
+        /// <summary>
+        /// Reviews the client connection states and cleans up orphaned player connections.
+        /// </summary>
+        /// <param name="adapter">The server adapter.</param>
+        /// <param name="timer">The timer running to initiate the review.</param>
         private void ReviewClientConnectionStates(IAdapter adapter, EngineTimer<IAdapter> timer)
         {
             var connectedClients = this.playerConnections.ToArray();
@@ -253,6 +376,10 @@ namespace MudDesigner.MudEngine.Networking
             }
         }
 
+        /// <summary>
+        /// Raises the server startup event in the server configuration.
+        /// </summary>
+        /// <returns></returns>
         private bool RaiseOnStartup()
         {
             var startupContext = new ServerContext(this, this.AdapterConfiguration, this.serverSocket);

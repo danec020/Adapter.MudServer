@@ -1,10 +1,15 @@
-﻿using MudDesigner.MudEngine.Actors;
-using MudDesigner.MudEngine.MessageBrokering;
-using System;
-using System.Threading;
-
+﻿//-----------------------------------------------------------------------
+// <copyright file="MainClass.cs" company="Sully">
+//     Copyright (c) Johnathon Sullinger. All rights reserved.
+// </copyright>
+//-----------------------------------------------------------------------
 namespace MudDesigner.MudEngine.Networking
 {
+    using MudDesigner.MudEngine.Actors;
+    using MudDesigner.MudEngine.MessageBrokering;
+    using System;
+    using System.Threading;
+
     class MainClass
     {
         public static void Main(string[] args)

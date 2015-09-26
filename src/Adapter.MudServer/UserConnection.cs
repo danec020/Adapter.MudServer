@@ -1,31 +1,66 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
-using MudDesigner.MudEngine.Actors;
-using MudDesigner.MudEngine.MessageBrokering;
-
+﻿//-----------------------------------------------------------------------
+// <copyright file="UserConnection.cs" company="Sully">
+//     Copyright (c) Johnathon Sullinger. All rights reserved.
+// </copyright>
+//-----------------------------------------------------------------------
 namespace MudDesigner.MudEngine.Networking
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Net.Sockets;
+    using System.Text;
+    using System.Threading.Tasks;
+    using MudDesigner.MudEngine.Actors;
+    using MudDesigner.MudEngine.MessageBrokering;
+
+    /// <summary>
+    /// Represents a connection to the server
+    /// </summary>
     internal sealed class UserConnection : IConnection
     {
+        /// <summary>
+        /// The buffer size
+        /// </summary>
         private readonly int bufferSize;
 
+        /// <summary>
+        /// The socket buffer
+        /// </summary>
         private byte[] buffer;
 
+        /// <summary>
+        /// The outbound message subscription
+        /// </summary>
         private ISubscription outboundMessage;
 
+        /// <summary>
+        /// The current data being processed
+        /// </summary>
         private readonly List<string> currentData;
 
+        /// <summary>
+        /// The last chunk received from the socket
+        /// </summary>
         private string lastChunk;
 
+        /// <summary>
+        /// The player that owns the socket on this connection
+        /// </summary>
         private IPlayer player;
 
+        /// <summary>
+        /// The socket
+        /// </summary>
         private Socket socket;
 
-		internal UserConnection(IPlayer player, Socket currentConnection, int bufferSize)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserConnection" /> class.
+        /// </summary>
+        /// <param name="player">The player.</param>
+        /// <param name="currentConnection">The current connection.</param>
+        /// <param name="bufferSize">Size of the buffer.</param>
+        internal UserConnection(IPlayer player, Socket currentConnection, int bufferSize)
         {
             this.bufferSize = bufferSize;
             this.buffer = new byte[this.bufferSize];
@@ -40,10 +75,19 @@ namespace MudDesigner.MudEngine.Networking
             //    msg => !string.IsNullOrEmpty(msg.Content) && msg.Target == player);
         }
 
+        /// <summary>
+        /// Occurs when a client is disconnected.
+        /// </summary>
         public event EventHandler<ConnectionClosedArgs> Disconnected;
 
+        /// <summary>
+        /// Gets the connection socket.
+        /// </summary>
         public Socket Connection { get; private set; }
 
+        /// <summary>
+        /// Determines whether this connection is still valid.
+        /// </summary>
         public bool IsConnectionValid()
         {
             if (this.socket == null || !this.socket.Connected)
@@ -57,6 +101,12 @@ namespace MudDesigner.MudEngine.Networking
             return !(pollWasSuccessful && noBytesReceived);
         }
 
+        /// <summary>
+        /// Initializes the component.
+        /// </summary>
+        /// <returns>
+        /// Returns an awaitable Task
+        /// </returns>
         public Task Initialize()
         {
             this.buffer = new byte[this.bufferSize];
@@ -65,8 +115,23 @@ namespace MudDesigner.MudEngine.Networking
             return Task.FromResult(0);
         }
 
+        /// <summary>
+        /// Lets this instance know that it is about to go out of scope and disposed.
+        /// The instance will perform clean-up of its resources in preperation for deletion.
+        /// </summary>
+        /// <returns>
+        /// Returns an awaitable Task
+        /// </returns>
+        /// <para>
+        /// Informs the component that it is no longer needed, allowing it to perform clean up.
+        /// Objects registered to one of the two delete events will be notified of the delete request.
+        /// </para>
         public Task Delete() => this.player.Delete();
 
+        /// <summary>
+        /// Sends a message to the client
+        /// </summary>
+        /// <param name="message">The message content</param>
         public void SendMessage(string content)
         {
             if (!this.IsConnectionValid())
@@ -83,6 +148,10 @@ namespace MudDesigner.MudEngine.Networking
             this.socket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, new AsyncCallback(this.CompleteMessageSending), content);
         }
 
+        /// <summary>
+        /// Called when the socket has received data from the client.
+        /// </summary>
+        /// <param name="result">The result.</param>
         private void ReceiveData(IAsyncResult result)
         {
             if (!this.IsConnectionValid())
@@ -100,6 +169,10 @@ namespace MudDesigner.MudEngine.Networking
             this.socket.BeginReceive(this.buffer, 0, this.bufferSize, 0, new AsyncCallback(this.ReceiveData), null);
         }
 
+        /// <summary>
+        /// Called when the socket has completed sending a message to the client.
+        /// </summary>
+        /// <param name="result">The result.</param>
         private void CompleteMessageSending(IAsyncResult result)
         {
             if (!this.IsConnectionValid())
@@ -110,6 +183,11 @@ namespace MudDesigner.MudEngine.Networking
             this.socket.EndSend(result);
         }
 
+        /// <summary>
+        /// Event handler to disconnect the socket when the palyer is being deleted.
+        /// </summary>
+        /// <param name="component">The component being deleted.</param>
+        /// <returns>Returns an awaitable Task</returns>
         private Task DisconnectPlayer(IGameComponent component)
         {
             if (this.outboundMessage != null)
