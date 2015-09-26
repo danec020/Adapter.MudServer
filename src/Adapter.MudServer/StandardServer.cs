@@ -172,12 +172,7 @@ namespace MudDesigner.MudEngine.Networking
                 return;
             }
 
-            IConnection connection = this.playerConnections[player];
-            connection.Delete();
-            this.playerConnections.Remove(player);
-            player.Deleting -= this.PlayerDeleting;
             player.Delete();
-            this.PublishMessage(new PlayerDeletionMessage(player));
         }
 
         private void DisconnectAll()
@@ -225,21 +220,19 @@ namespace MudDesigner.MudEngine.Networking
 
         private Task PlayerDeleting(IGameComponent component)
         {
-            component.Deleting -= this.PlayerDeleting;
             IPlayer player = component as IPlayer;
             if (player == null)
             {
                 return Task.FromResult(0);
             }
 
-            if (!this.playerConnections.ContainsKey(player))
-            {
-                return Task.FromResult(0);
-            }
-
-            IConnection connection = this.playerConnections[player];
-            connection.Delete();
+            // Clean up the server references to the player
+            this.playerSockets.Remove(player);
             this.playerConnections.Remove(player);
+
+            // Remove our strong reference to the event and publish the deletion
+            player.Deleting -= this.PlayerDeleting;
+            this.PublishMessage(new PlayerDeletionMessage(player));
 
             return Task.FromResult(0);
         }

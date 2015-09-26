@@ -66,12 +66,22 @@ namespace MudDesigner.MudEngine.Networking
             return Task.FromResult(0);
         }
 
-        public Task Delete()
-        {
-            this.socket.Shutdown(SocketShutdown.Both);
-            this.socket = null;
+        public Task Delete() => this.player.Delete();
 
-            return Task.FromResult(0);
+        public void SendMessage(string content)
+        {
+            if (!this.IsConnectionValid())
+            {
+                this.player.Delete();
+                return;
+            }
+            else if (content == null)
+            {
+                return;
+            }
+
+            byte[] buffer = Encoding.ASCII.GetBytes(content);
+            this.socket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, new AsyncCallback(this.CompleteMessageSending), content);
         }
 
         private void ReceiveData(IAsyncResult result)
@@ -91,22 +101,6 @@ namespace MudDesigner.MudEngine.Networking
             this.socket.BeginReceive(this.buffer, 0, this.bufferSize, 0, new AsyncCallback(this.ReceiveData), null);
         }
 
-        private void SendMessage(string content)
-        {
-            if (!this.IsConnectionValid())
-            {
-                this.player.Delete();
-                return;
-            }
-            else if (content == null)
-            {
-                return;
-            }
-
-            byte[] buffer = Encoding.ASCII.GetBytes(content);
-            this.socket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, new AsyncCallback(this.CompleteMessageSending), content);
-        }
-
         private void CompleteMessageSending(IAsyncResult result)
         {
             if (!this.IsConnectionValid())
@@ -117,7 +111,7 @@ namespace MudDesigner.MudEngine.Networking
             this.socket.EndSend(result);
         }
 
-        private async Task DisconnectPlayer(IGameComponent component)
+        private Task DisconnectPlayer(IGameComponent component)
         {
             if (this.outboundMessage != null)
             {
@@ -125,16 +119,18 @@ namespace MudDesigner.MudEngine.Networking
             }
 
             component.Deleting -= this.DisconnectPlayer;
-            await this.Delete();
+
+            this.socket.Shutdown(SocketShutdown.Both);
+            this.socket = null;
 
             var handler = this.Disconnected;
             if (handler == null)
             {
-                return;
+                return Task.FromResult(0);
             }
 
             handler(this, new ConnectionClosedArgs(this.player, this));
-            return;
+            return Task.FromResult(0);
         }
     }
 }
