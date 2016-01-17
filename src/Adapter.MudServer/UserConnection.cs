@@ -167,6 +167,7 @@ namespace MudDesigner.MudEngine.Networking
             }
 
             this.socket.BeginReceive(this.buffer, 0, this.bufferSize, 0, new AsyncCallback(this.ReceiveData), null);
+            //MessageBrokerFactory.Instance.Publish(new InfoMessage())
         }
 
         /// <summary>

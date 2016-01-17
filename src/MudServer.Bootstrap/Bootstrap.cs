@@ -30,7 +30,8 @@ namespace MudDesigner.MudEngine.Networking
         public void Initialize(Action<IGame, StandardServer> startedCallback)
         {
             var serverConfig = new ServerConfiguration();
-            var server = new StandardServer(new TestPlayerFactory(), new ConnectionFactory(), serverConfig);
+            var server = new StandardServer(new TestPlayerFactory(), new ConnectionFactory());
+            server.Configure(serverConfig);
             server.Owner = "@Scionwest";
 			this.Server = server;
 
