@@ -5,7 +5,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{6E4C306E-9004-4AF8-A490-86BF56F4DC18}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Adapter.MudServer</RootNamespace>
+    <RootNamespace>MudDesigner.MudEngine.Networking</RootNamespace>
     <AssemblyName>Adapter.MudServer</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
@@ -49,6 +49,7 @@
     <Compile Include="UserConnection.cs" />
     <Compile Include="StandardServer.cs" />
     <Compile Include="ServerContext.cs" />
+    <Compile Include="LoginCommand.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

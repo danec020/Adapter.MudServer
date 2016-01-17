@@ -312,7 +312,7 @@ namespace MudDesigner.MudEngine.Networking
         private void CreatePlayerConnection(Socket clientConnection)
         {
             // Initialize a new player.
-            IPlayer player = this.playerFactory.CreatePlayer();
+            IPlayer player = this.playerFactory.CreatePlayer(new LoginCommand());
             player.Deleting += this.PlayerDeleting;
 
             player.Initialize().ContinueWith(task =>

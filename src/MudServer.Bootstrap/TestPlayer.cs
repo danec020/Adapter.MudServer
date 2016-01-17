@@ -6,26 +6,59 @@
 using System;
 using System.Threading.Tasks;
 using MudDesigner.MudEngine.Actors;
+using MudDesigner.MudEngine.Commanding;
+using MudDesigner.MudEngine.Environment;
 
 namespace MudDesigner.MudEngine.Networking
 {
     public class TestPlayer : GameComponent, IPlayer
     {
-        public ICharacterClass CharacterClass { get; private set; }
+        public ICharacterClass CharacterClass
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
 
+        public IRoom CurrentRoom
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
 
-        public string Description { get; set; }
+        public IGender Gender
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
 
-        public IGender Gender { get; private set; }
+        public IActorCommand InitialCommand
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
 
-        public IRace Race { get; private set; }
+        public IRace Race
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
 
-        public void AddMountPoint(IMountPoint mountPoint)
+        public void AddAbility(IStat ability)
         {
             throw new NotImplementedException();
         }
 
-        public void AssignAbility(IAbility ability)
+        public void AddMountPoint(IMountPoint mountPoint)
         {
             throw new NotImplementedException();
         }
@@ -35,7 +68,7 @@ namespace MudDesigner.MudEngine.Networking
             throw new NotImplementedException();
         }
 
-        public IAbility[] GetAbilities()
+        public IStat[] GetAbilities()
         {
             throw new NotImplementedException();
         }
@@ -57,12 +90,12 @@ namespace MudDesigner.MudEngine.Networking
 
         protected override Task Load()
         {
-            return Task.FromResult(0);
+            throw new NotImplementedException();
         }
 
         protected override Task Unload()
         {
-            return Task.FromResult(0);
+            throw new NotImplementedException();
         }
     }
 }

@@ -5,14 +5,15 @@
 //-----------------------------------------------------------------------
 namespace MudDesigner.MudEngine.Networking
 {
+    using System;
     using MudDesigner.MudEngine.Actors;
+    using Commanding;
 
     public class TestPlayerFactory : IPlayerFactory
     {
-        public IPlayer CreatePlayer()
+        public IPlayer CreatePlayer(IActorCommand initialCommand)
         {
-            var player = new TestPlayer();
-            return player;
+            throw new NotImplementedException();
         }
     }
 }
