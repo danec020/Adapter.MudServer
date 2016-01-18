@@ -6,6 +6,7 @@
 namespace MudDesigner.MudEngine.Networking
 {
     using System.Net.Sockets;
+    using Commanding;
     using MudDesigner.MudEngine.Actors;
 
     /// <summary>
@@ -20,10 +21,10 @@ namespace MudDesigner.MudEngine.Networking
         /// <param name="player">The player to associate the connection to.</param>
         /// <param name="server">The server that the connection communicates twith.</param>
         /// <returns>Returns an instance of IConnection</returns>
-        public IConnection CreateConnection(IPlayer player, StandardServer server)
+        public IConnection CreateConnection(IPlayer player, StandardServer server, ICommandProcessedEventFactory commandProcessedFactory)
         {
             Socket playerConnection = server.GetSocketForPlayer(player);
-            return new UserConnection(player, playerConnection, server.AdapterConfiguration.PreferedBufferSize);
+            return new UserConnection(player, playerConnection, server.Configuration.PreferedBufferSize, commandProcessedFactory);
         }
     }
 }

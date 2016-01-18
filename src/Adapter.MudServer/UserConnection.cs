@@ -11,6 +11,7 @@ namespace MudDesigner.MudEngine.Networking
     using System.Net.Sockets;
     using System.Text;
     using System.Threading.Tasks;
+    using Commanding;
     using MudDesigner.MudEngine.Actors;
     using MudDesigner.MudEngine.MessageBrokering;
 
@@ -54,13 +55,15 @@ namespace MudDesigner.MudEngine.Networking
         /// </summary>
         private Socket socket;
 
+        private ICommandProcessedEventFactory commandProcessor;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="UserConnection" /> class.
         /// </summary>
         /// <param name="player">The player.</param>
         /// <param name="currentConnection">The current connection.</param>
         /// <param name="bufferSize">Size of the buffer.</param>
-        internal UserConnection(IPlayer player, Socket currentConnection, int bufferSize)
+        internal UserConnection(IPlayer player, Socket currentConnection, int bufferSize, ICommandProcessedEventFactory commandProcessor)
         {
             this.bufferSize = bufferSize;
             this.buffer = new byte[this.bufferSize];
@@ -68,11 +71,9 @@ namespace MudDesigner.MudEngine.Networking
             this.lastChunk = string.Empty;
             this.socket = currentConnection;
             this.Connection = socket;
+            this.commandProcessor = commandProcessor;
 
             player.Deleting += this.DisconnectPlayer;
-            //MessageBrokerFactory.Instance.Subscribe<CommandProcessedMessage>
-            //    ((msg, sub) => this.SendMessage(msg.Content),
-            //    msg => !string.IsNullOrEmpty(msg.Content) && msg.Target == player);
         }
 
         /// <summary>
@@ -161,13 +162,20 @@ namespace MudDesigner.MudEngine.Networking
             }
 
             int bytesRead = this.socket.EndReceive(result);
+            this.socket.BeginReceive(this.buffer, 0, this.bufferSize, 0, new AsyncCallback(this.ReceiveData), null);
             if (bytesRead == 0 || this.buffer.Count() == 0)
             {
                 return;
             }
 
-            this.socket.BeginReceive(this.buffer, 0, this.bufferSize, 0, new AsyncCallback(this.ReceiveData), null);
-            //MessageBrokerFactory.Instance.Publish(new InfoMessage())
+            // TODO: Decode the bits into a string for parsing.
+            string commandData = Encoding.Default.GetString(this.buffer, 0, bytesRead);
+            if (commandData != "\n" || commandData != "\r\0" || commandData != "\r\n" || commandData != "\r")
+            {
+                return;
+            }
+
+            MessageBrokerFactory.Instance.Publish(new CommandRequestedMessage(commandData, this.player, this.commandProcessor));
         }
 
         /// <summary>

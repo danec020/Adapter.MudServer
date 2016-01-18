@@ -3,13 +3,14 @@
 //     Copyright (c) Johnathon Sullinger. All rights reserved.
 // </copyright>
 //-----------------------------------------------------------------------
-namespace MudDesigner.MudEngine.Networking
+namespace MudDesigner.MudServer.Windows
 {
     using MudDesigner.MudEngine.Actors;
     using MudDesigner.MudEngine.MessageBrokering;
     using System;
     using System.Threading;
-
+    using MudEngine;
+    using System.Threading.Tasks;
     class MainClass
     {
         public static void Main(string[] args)
@@ -17,25 +18,10 @@ namespace MudDesigner.MudEngine.Networking
             SetupMessageBrokering();
 
             var bootstrap = new Bootstrap();
-            bool startupCompleted = false;
-            bootstrap.Initialize((game, server) =>
-            {
-                // Start the game loop.
-                while (game.IsRunning)
-                {
-                    if (!startupCompleted)
-                    {
-                        startupCompleted = true;
-                    }
+            Task bootstrapTask = bootstrap.Initialize();
 
-                    Thread.Sleep(1);
-                }
-            });
-
-            while (!startupCompleted)
-            {
-                Thread.Sleep(1);
-            }
+            // Wait for the engine to shut down.
+            bootstrapTask.Wait();
         }
 
         static void SetupMessageBrokering()

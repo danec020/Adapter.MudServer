@@ -13,7 +13,7 @@ namespace MudDesigner.MudEngine.Networking
     {
         public IPlayer CreatePlayer(IActorCommand initialCommand)
         {
-            throw new NotImplementedException();
+            return new TestPlayer();
         }
     }
 }

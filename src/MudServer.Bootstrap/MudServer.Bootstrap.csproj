@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -29,15 +29,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="MudDesigner.MudEngine">
-      <HintPath>..\..\libs\MudDesigner.MudEngine.dll</HintPath>
-    </Reference>
-    <Reference Include="MudEngine.Networking">
-      <HintPath>..\..\libs\MudEngine.Networking.dll</HintPath>
-    </Reference>
-    <Reference Include="MudEngine.Game">
-      <HintPath>..\..\libs\MudEngine.Game.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -45,11 +36,23 @@
     <Compile Include="TestPlayerFactory.cs" />
     <Compile Include="Bootstrap.cs" />
   </ItemGroup>
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
+    <ProjectReference Include="..\..\..\MudEngine\Src\MudEngine.Core\MudEngine.Core.csproj">
+      <Project>{3c8d5969-8510-4122-a91a-584507d1c9b6}</Project>
+      <Name>MudEngine.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\MudEngine\Src\MudEngine.Game\MudEngine.Game.csproj">
+      <Project>{35cda4db-3115-44ae-a97e-a8a9e1f020e7}</Project>
+      <Name>MudEngine.Game</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\MudEngine\Src\MudEngine.Networking\MudEngine.Networking.csproj">
+      <Project>{a5acfc67-deb4-4c80-ac77-b68d03c349a8}</Project>
+      <Name>MudEngine.Networking</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Adapter.MudServer\Adapter.MudServer.csproj">
-      <Project>{6E4C306E-9004-4AF8-A490-86BF56F4DC18}</Project>
+      <Project>{6e4c306e-9004-4af8-a490-86bf56f4dc18}</Project>
       <Name>Adapter.MudServer</Name>
     </ProjectReference>
   </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

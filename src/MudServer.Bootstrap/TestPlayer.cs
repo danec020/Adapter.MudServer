@@ -90,7 +90,7 @@ namespace MudDesigner.MudEngine.Networking
 
         protected override Task Load()
         {
-            throw new NotImplementedException();
+            return Task.FromResult(0);
         }
 
         protected override Task Unload()

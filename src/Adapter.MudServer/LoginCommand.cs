@@ -10,28 +10,12 @@ namespace MudDesigner.MudEngine.Networking
 {
     public class LoginCommand : IActorCommand
     {
-        public bool IsCompleted
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public string Name
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public Task<bool> CanProcessCommand(IActor source, params string[] arguments)
+        public Task<bool> CanProcessCommand(IPlayer source, string command, params string[] arguments)
         {
             throw new NotImplementedException();
         }
 
-        public Task ProcessCommand(IActor source, params string[] arguments)
+        public Task<CommandResult> ProcessCommand(IPlayer source, string command, params string[] arguments)
         {
             throw new NotImplementedException();
         }

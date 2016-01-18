@@ -35,11 +35,6 @@ namespace MudDesigner.MudEngine.Networking
         private Dictionary<IPlayer, Socket> playerSockets;
 
         /// <summary>
-        /// The server's configuration
-        /// </summary>
-        private IServerConfiguration configuration;
-
-        /// <summary>
         /// The server socket
         /// </summary>
         private Socket serverSocket;
@@ -120,7 +115,7 @@ namespace MudDesigner.MudEngine.Networking
                 throw new ArgumentNullException(nameof(configuration), "You must provide a configuration to the server that is not null.");
             }
 
-            this.configuration = configuration;
+            this.Configuration = configuration;
         }
 
         /// <summary>
@@ -131,7 +126,7 @@ namespace MudDesigner.MudEngine.Networking
         /// </returns>
         public override Task Initialize()
         {
-            if (this.configuration == null)
+            if (this.Configuration == null)
             {
                 throw new InvalidAdapterStateException(this, $"The {this.Name} adapter requires a valid {typeof(IServerConfiguration).Name} to be provided to it. Please provide one via the {nameof(this.Configure)}({typeof(IServerConfiguration).Name}) method.");
             }
@@ -139,9 +134,9 @@ namespace MudDesigner.MudEngine.Networking
             {
                 throw new InvalidAdapterStateException(this, $"The {this.Name} adapter has already been initialized.");
             }
-            else if (this.configuration.Port > 0)
+            else if (this.Configuration.Port > 0)
             {
-                this.RunningPort = this.configuration.Port;
+                this.RunningPort = this.Configuration.Port;
             }
 
             this.playerConnections = new Dictionary<IPlayer, IConnection>();
@@ -179,7 +174,7 @@ namespace MudDesigner.MudEngine.Networking
             // Instance the server socket and bind it to a port.
             this.serverSocket = new Socket(serverEndPoint.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             this.serverSocket.Bind(serverEndPoint);
-            this.serverSocket.Listen(this.configuration.MaxQueuedConnections);
+            this.serverSocket.Listen(this.Configuration.MaxQueuedConnections);
 
             if (this.RaiseOnStartup())
             {
@@ -210,10 +205,10 @@ namespace MudDesigner.MudEngine.Networking
         /// </para>
         public override Task Delete()
         {
-            if (this.AdapterConfiguration.OnServerShutdown != null)
+            if (this.Configuration.OnServerShutdown != null)
             {
-                IServerContext context = new ServerContext(this, this.AdapterConfiguration, this.serverSocket);
-                this.AdapterConfiguration.OnServerShutdown(context);
+                IServerContext context = new ServerContext(this, this.Configuration, this.serverSocket);
+                this.Configuration.OnServerShutdown(context);
                 if (context.IsHandled)
                 {
                     return Task.FromResult(0);
@@ -232,6 +227,16 @@ namespace MudDesigner.MudEngine.Networking
             this.PublishMessage(new AdapterDeletedMessage(this));
 
             return Task.FromResult(0);
+        }
+
+        public IConnection[] GetConnections() => this.playerConnections.Select(keyValuePair => keyValuePair.Value).ToArray();
+
+        public IConnection GetConnectionForPlayer(IPlayer player)
+        {
+            IConnection connection = null;
+            this.playerConnections.TryGetValue(player, out connection);
+
+            return connection;
         }
 
         /// <summary>
@@ -323,7 +328,7 @@ namespace MudDesigner.MudEngine.Networking
                 this.playerSockets.Add(player, clientConnection);
 
                 // Create the user connection instance and store it for the player.
-                IConnection userConnection = this.connectionFactory.CreateConnection(player, this);
+                IConnection userConnection = this.connectionFactory.CreateConnection(player, this, new ServerCommandProcessor(this));
                 this.playerConnections.Add(player, userConnection);
 
                 userConnection.Initialize();
@@ -382,10 +387,10 @@ namespace MudDesigner.MudEngine.Networking
         /// <returns></returns>
         private bool RaiseOnStartup()
         {
-            var startupContext = new ServerContext(this, this.AdapterConfiguration, this.serverSocket);
-            if (this.AdapterConfiguration.OnServerStartup != null)
+            var startupContext = new ServerContext(this, this.Configuration, this.serverSocket);
+            if (this.Configuration.OnServerStartup != null)
             {
-                this.AdapterConfiguration.OnServerStartup(startupContext);
+                this.Configuration.OnServerStartup(startupContext);
 
                 // Check and see if our context was replaced.
                 if (startupContext.ListeningSocket != this.serverSocket)

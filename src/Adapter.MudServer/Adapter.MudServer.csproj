@@ -31,19 +31,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="MudDesigner.MudEngine">
-      <HintPath>..\..\libs\MudDesigner.MudEngine.dll</HintPath>
-    </Reference>
-    <Reference Include="MudEngine.Networking">
-      <HintPath>..\..\libs\MudEngine.Networking.dll</HintPath>
-    </Reference>
-    <Reference Include="MudEngine.Game">
-      <HintPath>..\..\libs\MudEngine.Game.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ConnectionFactory.cs" />
+    <Compile Include="ServerCommandProcessor.cs" />
     <Compile Include="ServerConfiguration.cs" />
     <Compile Include="ServerContentParser.cs" />
     <Compile Include="UserConnection.cs" />
@@ -51,6 +43,19 @@
     <Compile Include="ServerContext.cs" />
     <Compile Include="LoginCommand.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\MudEngine\Src\MudEngine.Core\MudEngine.Core.csproj">
+      <Project>{3c8d5969-8510-4122-a91a-584507d1c9b6}</Project>
+      <Name>MudEngine.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\MudEngine\Src\MudEngine.Game\MudEngine.Game.csproj">
+      <Project>{35cda4db-3115-44ae-a97e-a8a9e1f020e7}</Project>
+      <Name>MudEngine.Game</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\MudEngine\Src\MudEngine.Networking\MudEngine.Networking.csproj">
+      <Project>{a5acfc67-deb4-4c80-ac77-b68d03c349a8}</Project>
+      <Name>MudEngine.Networking</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

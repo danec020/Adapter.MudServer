@@ -3,10 +3,14 @@
 //     Copyright (c) Johnathon Sullinger. All rights reserved.
 // </copyright>
 //-----------------------------------------------------------------------
-namespace MudDesigner.MudEngine.Networking
+namespace MudDesigner.MudServer
 {
     using System;
+    using System.Threading.Tasks;
     using MudDesigner.MudEngine.Game;
+    using MudEngine;
+    using MudEngine.Commanding;
+    using MudEngine.Networking;
 
     /// <summary>
     /// Bootstraps the startup process of the game and server
@@ -27,22 +31,29 @@ namespace MudDesigner.MudEngine.Networking
         /// Initializes the server and game.
         /// </summary>
         /// <param name="startedCallback">The callback to invoke when initalization is completed.</param>
-        public void Initialize(Action<IGame, StandardServer> startedCallback)
+        public Task Initialize()
         {
-            var serverConfig = new ServerConfiguration();
+            // Server setup
+            IServerConfiguration serverConfig = new ServerConfiguration();
+            serverConfig.Port = 1000;
             var server = new StandardServer(new TestPlayerFactory(), new ConnectionFactory());
             server.Configure(serverConfig);
             server.Owner = "@Scionwest";
 			this.Server = server;
 
-            var gameConfig = new GameConfiguration();
-            gameConfig.UseAdapter(server);
+            // Commanding setup
+            var commandManager = new CommandManager();
+            commandManager.Configure(new CommandingConfiguration(new CommandFactory(new Type[] { typeof(LoginCommand), typeof(WalkCommand) })));
 
-            var game = new MudGame();
+            IGameConfiguration gameConfig = new GameConfiguration();
+            gameConfig.UseAdapter(server);
+            gameConfig.UseAdapter(commandManager);
+
+            IGame game = new MudGame();
             game.Configure(gameConfig);
 			this.Game = game;
 
-            game.BeginStart(runningGame => startedCallback(runningGame, server));
+            return game.StartAsync();
         }
     }
 }
