@@ -72,6 +72,7 @@ namespace MudDesigner.MudEngine.Networking
             this.socket = currentConnection;
             this.Connection = socket;
             this.commandProcessor = commandProcessor;
+            this.player = player;
 
             player.Deleting += this.DisconnectPlayer;
         }
@@ -112,6 +113,12 @@ namespace MudDesigner.MudEngine.Networking
         {
             this.buffer = new byte[this.bufferSize];
             this.socket.BeginReceive(this.buffer, 0, this.bufferSize, 0, new AsyncCallback(this.ReceiveData), null);
+
+            //Send Players Initial Command message
+            if(player.InitialCommand != null)
+            {
+                MessageBrokerFactory.Instance.Publish(new CommandRequestedMessage("Login", this.player, this.commandProcessor));
+            }
 
             return Task.FromResult(0);
         }
@@ -169,8 +176,8 @@ namespace MudDesigner.MudEngine.Networking
             }
 
             // TODO: Decode the bits into a string for parsing.
-            string commandData = Encoding.Default.GetString(this.buffer, 0, bytesRead);
-            if (commandData != "\n" || commandData != "\r\0" || commandData != "\r\n" || commandData != "\r")
+            string commandData = Encoding.ASCII.GetString(this.buffer, 0, bytesRead);
+            if (commandData == "\n" || commandData == "\r\0" || commandData == "\r\n" || commandData == "\r" || commandData.StartsWith("??"))
             {
                 return;
             }

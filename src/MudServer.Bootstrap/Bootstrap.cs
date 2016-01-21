@@ -11,6 +11,7 @@ namespace MudDesigner.MudServer
     using MudEngine;
     using MudEngine.Commanding;
     using MudEngine.Networking;
+    using global::MudEngine.Game.Actors;
 
     /// <summary>
     /// Bootstraps the startup process of the game and server
@@ -36,7 +37,7 @@ namespace MudDesigner.MudServer
             // Server setup
             IServerConfiguration serverConfig = new ServerConfiguration();
             serverConfig.Port = 1000;
-            var server = new StandardServer(new TestPlayerFactory(), new ConnectionFactory());
+            var server = new StandardServer(new PlayerFactory(), new ConnectionFactory());
             server.Configure(serverConfig);
             server.Owner = "@Scionwest";
 			this.Server = server;
